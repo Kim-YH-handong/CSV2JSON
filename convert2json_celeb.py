@@ -30,6 +30,8 @@ fake_pattern = re.compile(r'_(id\d+_id\d+_\d+)_')
 
 # 모든 CSV 파일을 읽어와서 dictionary 형태로 변환
 for csv_file_path in csv_file_paths:
+    new_video = True
+    new_video_key = None
     with open(csv_file_path, mode='r', encoding='utf-8') as file:  # Open csv file
         csv_reader = csv.DictReader(file)
         for data in csv_reader:
@@ -86,8 +88,19 @@ for csv_file_path in csv_file_paths:
                     "label": df_type,
                     "frames": []
                 }
+            
+            # 새로운 비디오인 경우, attributes 추가
+            if new_video_key != video_key:
+                new_video = True
+            # train, val, test: img_path, label, ismale, iswhite, isblack, intersec_label
             json_data[dataset_name][df_type][type_data][video_key]['frames'].append(frame_path)
-
+            if new_video:
+                json_data[dataset_name][df_type][type_data][video_key]['attributes'] = {
+                    'ismale': data['ismale'],
+                    'iswhite': data['iswhite'],
+                    'isblack': data['isblack'],
+                    'intersec_label': data['intersec_label'],
+                }
 # 수정된 JSON 파일 저장
 with open(json_file_path, 'w', encoding='utf-8') as json_file:
     json.dump(json_data, json_file, ensure_ascii=False, indent=4)
